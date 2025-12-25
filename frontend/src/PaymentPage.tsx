@@ -47,16 +47,17 @@ function PaymentPage() {
 
     const description = `Parking ${paymentInfo.lockId}`;
 
-    // Tạo VietQR deep link sử dụng img.vietqr.io
-    // Format: https://img.vietqr.io/image/[BANK_CODE]-[ACCOUNT_NUMBER]-[TEMPLATE].jpg?amount=[AMOUNT]&addInfo=[DESCRIPTION]
-    const vietQRUrl =
-      `https://img.vietqr.io/image/${paymentInfo.bankCode}-${paymentInfo.accountNumber}-compact2.jpg` +
-      `?amount=${paymentInfo.amount}` +
-      `&addInfo=${encodeURIComponent(description)}` +
-      `&accountName=${encodeURIComponent(paymentInfo.accountName)}`;
+    // VietQR Deep Link - mở trang chọn app ngân hàng
+    // Format: https://dl.vietqr.io/pay?bank=xxx&acc=xxx&amount=xxx&des=xxx&name=xxx
+    const vietQRDeepLink =
+      `https://dl.vietqr.io/pay` +
+      `?bank=${paymentInfo.bankCode}` +
+      `&acc=${paymentInfo.accountNumber}` +
+      `&amount=${paymentInfo.amount}` +
+      `&des=${encodeURIComponent(description)}` +
+      `&name=${encodeURIComponent(paymentInfo.accountName)}`;
 
-    // Mở VietQR URL - trên mobile sẽ có option chọn app ngân hàng
-    window.open(vietQRUrl, '_blank');
+    window.location.href = vietQRDeepLink;
   };
 
   if (loading) {
