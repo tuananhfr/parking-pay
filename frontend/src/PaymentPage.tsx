@@ -47,11 +47,28 @@ function PaymentPage() {
 
     const description = `Parking ${paymentInfo.lockId}`;
 
-    // VietQR Deep Link - mở trang chọn app ngân hàng
-    // Format: https://dl.vietqr.io/pay?bank=xxx&acc=xxx&amount=xxx&des=xxx&name=xxx
+    // Map bank code to app code
+    // ICB (VietinBank) -> app code "vtb"
+    const bankToAppMap: { [key: string]: string } = {
+      'ICB': 'vtb',           // VietinBank
+      '970436': 'vtb',        // VietinBank
+      '970415': 'vcb',        // Vietcombank
+      '970418': 'tcb',        // Techcombank
+      '970422': 'mb',         // MB Bank
+      '970423': 'tpb',        // TPBank
+      '970416': 'acb',        // ACB
+      '970407': 'sacombank',  // Sacombank
+      '970405': 'agribank',   // Agribank
+    };
+
+    const appCode = bankToAppMap[paymentInfo.bankCode] || 'vtb';
+
+    // VietQR Deep Link - mở app ngân hàng cụ thể
+    // Format: https://dl.vietqr.io/pay?app=xxx&bank=xxx&acc=xxx&amount=xxx&des=xxx&name=xxx
     const vietQRDeepLink =
       `https://dl.vietqr.io/pay` +
-      `?bank=${paymentInfo.bankCode}` +
+      `?app=${appCode}` +
+      `&bank=${paymentInfo.bankCode}` +
       `&acc=${paymentInfo.accountNumber}` +
       `&amount=${paymentInfo.amount}` +
       `&des=${encodeURIComponent(description)}` +
