@@ -45,9 +45,18 @@ function PaymentPage() {
   const handlePayment = () => {
     if (!paymentInfo) return;
 
-    // Sử dụng QR code URL từ Sepay - khi click sẽ mở trang chọn app ngân hàng
-    // Sepay QR URL format đã có đầy đủ thông tin: account, bank, amount, description
-    window.open(paymentInfo.qrCodeUrl, '_blank');
+    const description = `Parking ${paymentInfo.lockId}`;
+
+    // Tạo VietQR deep link sử dụng img.vietqr.io
+    // Format: https://img.vietqr.io/image/[BANK_CODE]-[ACCOUNT_NUMBER]-[TEMPLATE].jpg?amount=[AMOUNT]&addInfo=[DESCRIPTION]
+    const vietQRUrl =
+      `https://img.vietqr.io/image/${paymentInfo.bankCode}-${paymentInfo.accountNumber}-compact2.jpg` +
+      `?amount=${paymentInfo.amount}` +
+      `&addInfo=${encodeURIComponent(description)}` +
+      `&accountName=${encodeURIComponent(paymentInfo.accountName)}`;
+
+    // Mở VietQR URL - trên mobile sẽ có option chọn app ngân hàng
+    window.open(vietQRUrl, '_blank');
   };
 
   if (loading) {
