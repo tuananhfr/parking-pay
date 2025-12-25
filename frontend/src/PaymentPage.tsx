@@ -45,41 +45,9 @@ function PaymentPage() {
   const handlePayment = () => {
     if (!paymentInfo) return;
 
-    // Build deep link for banking app
-    const description = `Parking ${paymentInfo.lockId}`;
-    const deepLink = buildDeepLink(
-      paymentInfo.accountNumber,
-      paymentInfo.accountName,
-      paymentInfo.amount,
-      description
-    );
-
-    // Try to open banking app
-    window.location.href = deepLink;
-
-    // Fallback: If banking app not installed, show QR code
-    setTimeout(() => {
-      alert("Nếu app ngân hàng không mở, vui lòng quét QR code bên dưới");
-    }, 2000);
-  };
-
-  const buildDeepLink = (
-    accountNumber: string,
-    accountName: string,
-    amount: number,
-    description: string
-  ): string => {
-    // VietQR deep link format (works with most banking apps)
-    const params = new URLSearchParams({
-      bankCode: paymentInfo?.bankCode || "970415",
-      accountNumber: accountNumber,
-      accountName: accountName,
-      amount: String(amount),
-      description: description,
-    });
-
-    // Universal banking deep link (Android Intent)
-    return `intent://qr/payment?${params.toString()}#Intent;scheme=vietqr;package=com.vietqr;end;`;
+    // Sử dụng QR code URL từ Sepay - khi click sẽ mở trang chọn app ngân hàng
+    // Sepay QR URL format đã có đầy đủ thông tin: account, bank, amount, description
+    window.open(paymentInfo.qrCodeUrl, '_blank');
   };
 
   if (loading) {
