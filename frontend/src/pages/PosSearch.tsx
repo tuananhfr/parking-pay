@@ -52,7 +52,9 @@ function PosSearch() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/pos/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `${API_URL}/api/pos/search?q=${encodeURIComponent(query)}`
+      );
       if (!response.ok) {
         throw new Error("Lỗi tìm kiếm");
       }
@@ -82,122 +84,159 @@ function PosSearch() {
   };
 
   return (
-    <div className="container-fluid px-3 py-4" style={{ maxWidth: "800px" }}>
-      {/* Header */}
-      <div className="text-center mb-4">
-        <i className="bi bi-cash-register text-primary" style={{ fontSize: "3rem" }}></i>
-        <h2 className="mt-3 mb-1">POS - Thanh toán đỗ xe</h2>
-        <p className="text-muted">Tìm kiếm locker để thanh toán</p>
-      </div>
-
-      {/* Search Input */}
-      <div className="card shadow-sm border-0 mb-4">
-        <div className="card-body p-3">
-          <div className="input-group input-group-lg">
-            <span className="input-group-text bg-primary text-white">
-              <i className="bi bi-search"></i>
-            </span>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="form-control"
-              placeholder="Nhập Locker ID, tên hoặc Device ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              autoFocus
-            />
-            {loading && (
-              <span className="input-group-text">
-                <div className="spinner-border spinner-border-sm text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
-              </span>
-            )}
-          </div>
+    <div className="pos-container">
+      <div
+        className="container-fluid h-100 d-flex flex-column"
+        style={{ maxWidth: "100%" }}
+      >
+        {/* Header - Fixed */}
+        <div className="text-center py-3" style={{ flexShrink: 0 }}>
+          <i
+            className="bi bi-cash-register text-primary"
+            style={{ fontSize: "2.5rem" }}
+          ></i>
+          <h2 className="mt-2 mb-1" style={{ fontSize: "1.75rem" }}>
+            POS - Thanh toán đỗ xe
+          </h2>
+          <p className="text-muted mb-0" style={{ fontSize: "0.9rem" }}>
+            Tìm kiếm locker để thanh toán
+          </p>
         </div>
-      </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="alert alert-danger" role="alert">
-          <i className="bi bi-exclamation-triangle me-2"></i>
-          {error}
-        </div>
-      )}
-
-      {/* Results */}
-      {searchTerm.trim().length > 0 && !loading && (
-        <>
-          {lockers.length === 0 ? (
-            <div className="card shadow-sm border-0">
-              <div className="card-body text-center py-5">
-                <i className="bi bi-inbox text-muted" style={{ fontSize: "3rem" }}></i>
-                <p className="text-muted mt-3 mb-0">Không tìm thấy locker nào</p>
+        {/* Search Input - Fixed */}
+        <div className="px-3 mb-3" style={{ flexShrink: 0 }}>
+          <div className="card shadow-sm border-0">
+            <div className="card-body p-3">
+              <div className="input-group input-group-lg">
+                <span className="input-group-text bg-primary text-white">
+                  <i className="bi bi-search"></i>
+                </span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className="form-control"
+                  placeholder="Nhập Locker ID, tên hoặc Device ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  autoFocus
+                />
+                {loading && (
+                  <span className="input-group-text">
+                    <div
+                      className="spinner-border spinner-border-sm text-primary"
+                      role="status"
+                    >
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </span>
+                )}
               </div>
             </div>
-          ) : (
-            <div className="card shadow-sm border-0">
-              <div className="card-header bg-light">
-                <h6 className="mb-0">
-                  Tìm thấy {lockers.length} locker
-                </h6>
-              </div>
-              <div className="list-group list-group-flush">
-                {lockers.map((locker) => (
-                  <button
-                    key={locker.lock_id}
-                    className="list-group-item list-group-item-action"
-                    onClick={() => handleSelectLocker(locker)}
+          </div>
+        </div>
+
+        {/* Error Message - Fixed */}
+        {error && (
+          <div className="px-3 mb-3" style={{ flexShrink: 0 }}>
+            <div className="alert alert-danger mb-0" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </div>
+          </div>
+        )}
+
+        {/* Results - Scrollable */}
+        <div
+          className="flex-grow-1 overflow-auto px-3"
+          style={{ minHeight: 0 }}
+        >
+          {searchTerm.trim().length > 0 && !loading && (
+            <>
+              {lockers.length === 0 ? (
+                <div className="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center">
+                  <div className="text-center py-5">
+                    <i
+                      className="bi bi-inbox text-muted"
+                      style={{ fontSize: "3rem" }}
+                    ></i>
+                    <p className="text-muted mt-3 mb-0">
+                      Không tìm thấy locker nào
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="card shadow-sm border-0">
+                  <div className="card-header bg-light">
+                    <h6 className="mb-0">Tìm thấy {lockers.length} locker</h6>
+                  </div>
+                  <div
+                    className="list-group list-group-flush"
+                    style={{
+                      maxHeight: "calc(100vh - 250px)",
+                      overflowY: "auto",
+                    }}
                   >
-                    <div className="d-flex justify-content-between align-items-start">
-                      <div className="flex-grow-1">
-                        <h6 className="mb-1">
-                          {locker.name}
-                          <span className="badge bg-primary ms-2">{locker.lock_id}</span>
-                        </h6>
-                        <div className="small text-muted mb-2">
-                          <i className="bi bi-geo-alt me-1"></i>
-                          {locker.device_id}
-                          {locker.car_enter_time && (
-                            <>
-                              {" • "}
-                              <i className="bi bi-clock me-1"></i>
-                              Đỗ: {formatDuration(locker.car_enter_time)}
-                            </>
-                          )}
+                    {lockers.map((locker) => (
+                      <button
+                        key={locker.lock_id}
+                        className="list-group-item list-group-item-action"
+                        onClick={() => handleSelectLocker(locker)}
+                      >
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div className="flex-grow-1">
+                            <h6 className="mb-1">
+                              {locker.name}
+                              <span className="badge bg-primary ms-2">
+                                {locker.lock_id}
+                              </span>
+                            </h6>
+                            <div className="small text-muted mb-2">
+                              <i className="bi bi-geo-alt me-1"></i>
+                              {locker.device_id}
+                              {locker.car_enter_time && (
+                                <>
+                                  {" • "}
+                                  <i className="bi bi-clock me-1"></i>
+                                  Đỗ: {formatDuration(locker.car_enter_time)}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-end">
+                            <div className="h5 mb-0 text-success fw-bold">
+                              {locker.parking_fee.toLocaleString("vi-VN")} đ
+                            </div>
+                            <span className="badge bg-warning text-dark">
+                              {locker.status}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-end">
-                        <div className="h5 mb-0 text-success fw-bold">
-                          {locker.parking_fee.toLocaleString("vi-VN")} đ
-                        </div>
-                        <span className="badge bg-warning text-dark">
-                          {locker.status}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Empty State */}
+          {searchTerm.trim().length === 0 && (
+            <div className="card shadow-sm border-0 h-100 d-flex align-items-center justify-content-center">
+              <div className="text-center py-5">
+                <i
+                  className="bi bi-search text-muted"
+                  style={{ fontSize: "3rem" }}
+                ></i>
+                <p className="text-muted mt-3 mb-0">
+                  Nhập Locker ID, tên hoặc Device ID để tìm kiếm
+                </p>
               </div>
             </div>
           )}
-        </>
-      )}
-
-      {/* Empty State */}
-      {searchTerm.trim().length === 0 && (
-        <div className="card shadow-sm border-0">
-          <div className="card-body text-center py-5">
-            <i className="bi bi-search text-muted" style={{ fontSize: "3rem" }}></i>
-            <p className="text-muted mt-3 mb-0">
-              Nhập Locker ID, tên hoặc Device ID để tìm kiếm
-            </p>
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export default PosSearch;
-
