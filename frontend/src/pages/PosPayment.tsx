@@ -189,125 +189,138 @@ function PosPayment() {
           </div>
 
           {/* Parking Info Card */}
-          {locker.car_enter_time && (
-            <div className="card shadow-sm border-0 mb-1">
-              <div className="card-header bg-light py-1">
-                <h6 className="mb-0" style={{ fontSize: "0.85rem" }}>
-                  <i className="bi bi-clock-history me-1"></i>
-                  Thông tin đỗ xe
-                </h6>
-              </div>
-              <div className="card-body py-1">
-                <div className="row mb-1">
-                  <div className="col-6">
-                    <small
-                      className="text-muted"
-                      style={{ fontSize: "0.75rem" }}
-                    >
-                      Xe vào:
-                    </small>{" "}
-                    <span className="fw-bold" style={{ fontSize: "0.8rem" }}>
-                      {dayjs(locker.car_enter_time).format("DD/MM/YYYY HH:mm")}
-                    </span>
+          <div className="card shadow-sm border-0 mb-1">
+            <div className="card-header bg-light py-1">
+              <h6 className="mb-0" style={{ fontSize: "0.85rem" }}>
+                <i className="bi bi-clock-history me-1"></i>
+                Thông tin đỗ xe
+              </h6>
+            </div>
+            <div className="card-body py-1">
+              {locker.car_enter_time ? (
+                <>
+                  <div className="row mb-1">
+                    <div className="col-6">
+                      <small
+                        className="text-muted"
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        Xe vào:
+                      </small>{" "}
+                      <span className="fw-bold" style={{ fontSize: "0.8rem" }}>
+                        {dayjs(locker.car_enter_time).format(
+                          "DD/MM/YYYY HH:mm"
+                        )}
+                      </span>
+                    </div>
+                    <div className="col-6">
+                      <small
+                        className="text-muted"
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        Đỗ:
+                      </small>{" "}
+                      <span
+                        className="fw-bold text-primary"
+                        style={{ fontSize: "0.85rem" }}
+                      >
+                        {formatDuration(locker.car_enter_time)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="col-6">
-                    <small
-                      className="text-muted"
-                      style={{ fontSize: "0.75rem" }}
-                    >
-                      Đỗ:
-                    </small>{" "}
-                    <span
-                      className="fw-bold text-primary"
-                      style={{ fontSize: "0.85rem" }}
-                    >
-                      {formatDuration(locker.car_enter_time)}
-                    </span>
-                  </div>
-                </div>
-                {billingStartTime && (
-                  <>
-                    <hr className="my-1" style={{ margin: "0.25rem 0" }} />
-                    <div className="row mb-1">
-                      <div className="col-6">
-                        <small
-                          className="text-muted"
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          Tính từ:
-                        </small>{" "}
-                        <span style={{ fontSize: "0.8rem" }}>
-                          {dayjs(billingStartTime).format("DD/MM/YYYY HH:mm")}
-                        </span>
-                      </div>
-                      {paidDuration && (
+                  {billingStartTime && (
+                    <>
+                      <hr className="my-1" style={{ margin: "0.25rem 0" }} />
+                      <div className="row mb-1">
                         <div className="col-6">
                           <small
                             className="text-muted"
                             style={{ fontSize: "0.75rem" }}
                           >
-                            Tính:
+                            Tính từ:
                           </small>{" "}
-                          <span
-                            className="fw-bold"
-                            style={{ fontSize: "0.8rem" }}
-                          >
-                            {paidDuration.hours()}h {paidDuration.minutes()}m
+                          <span style={{ fontSize: "0.8rem" }}>
+                            {dayjs(billingStartTime).format("DD/MM/YYYY HH:mm")}
                           </span>
                         </div>
-                      )}
-                    </div>
-                  </>
-                )}
-                {locker.lock_free_time > 0 && (
-                  <>
-                    <hr className="my-1" style={{ margin: "0.25rem 0" }} />
-                    <div className="row">
-                      <div className="col-12">
-                        <small
-                          className="text-muted"
-                          style={{ fontSize: "0.75rem" }}
-                        >
-                          Miễn phí:
-                        </small>{" "}
-                        <span
-                          className="fw-bold text-success"
-                          style={{ fontSize: "0.8rem" }}
-                        >
-                          {locker.lock_free_time} phút
-                        </span>
+                        {paidDuration && (
+                          <div className="col-6">
+                            <small
+                              className="text-muted"
+                              style={{ fontSize: "0.75rem" }}
+                            >
+                              Tính:
+                            </small>{" "}
+                            <span
+                              className="fw-bold"
+                              style={{ fontSize: "0.8rem" }}
+                            >
+                              {paidDuration.hours()}h {paidDuration.minutes()}m
+                            </span>
+                          </div>
+                        )}
                       </div>
+                    </>
+                  )}
+                  {locker.lock_free_time > 0 && (
+                    <>
+                      <hr className="my-1" style={{ margin: "0.25rem 0" }} />
+                      <div className="row">
+                        <div className="col-12">
+                          <small
+                            className="text-muted"
+                            style={{ fontSize: "0.75rem" }}
+                          >
+                            Miễn phí:
+                          </small>{" "}
+                          <span
+                            className="fw-bold text-success"
+                            style={{ fontSize: "0.8rem" }}
+                          >
+                            {locker.lock_free_time} phút
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div
+                  className="text-muted text-center"
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  Chưa có thông tin đỗ xe
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Payment Amount Card */}
+          {locker.parking_fee > 0 && (
+            <div
+              className="card shadow-sm border-0 mb-1"
+              style={{ border: "2px solid #28a745 !important" }}
+            >
+              <div className="card-body py-2">
+                <div className="text-center">
+                  <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+                    Tổng tiền phải trả
+                  </small>
+                  <h2
+                    className="text-success fw-bold mb-0"
+                    style={{ fontSize: "1.75rem", lineHeight: "1.2" }}
+                  >
+                    {locker.parking_fee.toLocaleString("vi-VN")} đ
+                  </h2>
+                  {locker.hourly_rate > 0 && (
+                    <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                      {locker.hourly_rate.toLocaleString("vi-VN")} đ/giờ
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           )}
-
-          {/* Payment Amount Card */}
-          <div
-            className="card shadow-sm border-0 mb-1"
-            style={{ border: "2px solid #28a745 !important" }}
-          >
-            <div className="card-body py-2">
-              <div className="text-center">
-                <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                  Tổng tiền phải trả
-                </small>
-                <h2
-                  className="text-success fw-bold mb-0"
-                  style={{ fontSize: "1.75rem", lineHeight: "1.2" }}
-                >
-                  {locker.parking_fee.toLocaleString("vi-VN")} đ
-                </h2>
-                {locker.hourly_rate > 0 && (
-                  <div className="text-muted" style={{ fontSize: "0.75rem" }}>
-                    {locker.hourly_rate.toLocaleString("vi-VN")} đ/giờ
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
 
           {/* Error Message */}
           {error && (
@@ -324,15 +337,19 @@ function PosPayment() {
 
         {/* Footer Buttons */}
         <div className="mt-1" style={{ flexShrink: 0 }}>
-          {/* Payment Button - Navigate to QR Code */}
-          <button
-            className="btn btn-primary w-100 py-2 fw-bold mb-1"
-            onClick={() => navigate(`/pos/payment/${lockId}/qr`)}
-            style={{ fontSize: "1rem" }}
-          >
-            <i className="bi bi-qr-code me-2"></i>
-            Thanh toán
-          </button>
+          {/* Payment Button - Only show if locker is ready for payment */}
+          {locker.occupied &&
+            locker.status === "UP" &&
+            locker.parking_fee > 0 && (
+              <button
+                className="btn btn-primary w-100 py-2 fw-bold mb-1"
+                onClick={() => navigate(`/pos/payment/${lockId}/qr`)}
+                style={{ fontSize: "1rem" }}
+              >
+                <i className="bi bi-qr-code me-2"></i>
+                Thanh toán
+              </button>
+            )}
 
           {/* Back Button */}
           <button
