@@ -6,6 +6,8 @@ function PosResult() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const success = searchParams.get("success") === "true";
+  const auto = searchParams.get("auto") === "true";
+  const orderId = searchParams.get("orderId");
 
   useEffect(() => {
     // Auto redirect to search after 5 seconds if success
@@ -33,10 +35,23 @@ function PosResult() {
                 <h3 className="mb-3" style={{ fontSize: "1.5rem" }}>
                   Thanh toán thành công!
                 </h3>
+                {auto && (
+                  <div className="alert alert-info mb-3">
+                    <i className="bi bi-broadcast me-2"></i>
+                    <strong>
+                      Thanh toán đã được xác nhận tự động qua webhook
+                    </strong>
+                  </div>
+                )}
                 <div className="mb-3">
                   <p className="text-muted mb-2">
                     <strong>Locker:</strong> {lockId}
                   </p>
+                  {orderId && (
+                    <p className="text-muted mb-2 small">
+                      <strong>Mã đơn:</strong> {orderId}
+                    </p>
+                  )}
                   <p className="text-muted mb-0 small">
                     Locker đã được mở khóa. Xe có thể ra.
                   </p>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
+import socketService from "../services/socket";
 dayjs.extend(duration);
 
 interface LockerDetail {
@@ -39,6 +40,7 @@ function PosQrCode() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false); // Track if payment was confirmed via webhook
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
   useEffect(() => {
@@ -46,6 +48,39 @@ function PosQrCode() {
       loadPaymentInfo();
     }
   }, [lockId]);
+
+  // Listen for payment confirmed event from webhook
+  useEffect(() => {
+    if (!lockId || !paymentInfo) return;
+
+    // Connect to WebSocket
+    socketService.connect();
+
+    // Listen for payment confirmed event
+    const handlePaymentConfirmed = (data: any) => {
+      const { lock_id, order_id } = data;
+
+      // Check if this payment is for the current locker and order
+      if (lock_id === lockId && order_id === paymentInfo.orderId) {
+        console.log(`Payment confirmed for order ${order_id}, locker ${lock_id}`);
+        
+        // Mark payment as confirmed
+        setPaymentConfirmed(true);
+        
+        // Automatically navigate to result page after a short delay
+        setTimeout(() => {
+          navigate(`/pos/result/${lockId}?success=true&auto=true&orderId=${order_id}`);
+        }, 1000); // 1 second delay to show confirmation message
+      }
+    };
+
+    socketService.on("payment:confirmed", handlePaymentConfirmed);
+
+    // Cleanup on unmount
+    return () => {
+      socketService.off("payment:confirmed", handlePaymentConfirmed);
+    };
+  }, [lockId, paymentInfo, navigate]);
 
   const loadPaymentInfo = async () => {
     if (!lockId) return;
@@ -240,27 +275,39 @@ function PosQrCode() {
           </div>
         )}
 
+        {/* Payment Confirmed Message */}
+        {paymentConfirmed && (
+          <div className="alert alert-success mb-3" style={{ flexShrink: 0 }}>
+            <i className="bi bi-check-circle-fill me-2"></i>
+            <strong>Thanh toán đã được xác nhận!</strong>
+            <br />
+            <small>Đang chuyển đến trang kết quả...</small>
+          </div>
+        )}
+
         {/* Footer Buttons */}
         <div className="mt-3" style={{ flexShrink: 0 }}>
-          {/* Confirm Payment Button */}
-          <button
-            className="btn btn-success btn-lg w-100 py-3 fw-bold mb-2"
-            onClick={handleConfirmPayment}
-            disabled={processing}
-            style={{ fontSize: "1.2rem" }}
-          >
-            {processing ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Đang xử lý...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-check-circle me-2"></i>
-                Đã chuyển khoản
-              </>
-            )}
-          </button>
+          {/* Confirm Payment Button - Hide if payment already confirmed */}
+          {!paymentConfirmed && (
+            <button
+              className="btn btn-success btn-lg w-100 py-3 fw-bold mb-2"
+              onClick={handleConfirmPayment}
+              disabled={processing}
+              style={{ fontSize: "1.2rem" }}
+            >
+              {processing ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2"></span>
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-check-circle me-2"></i>
+                  Đã chuyển khoản
+                </>
+              )}
+            </button>
+          )}
 
           {/* Back Button */}
           <button
