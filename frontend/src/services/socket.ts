@@ -19,9 +19,7 @@ class SocketService {
     });
 
     this.socket.on("connect", () => {
-      console.log("WebSocket connected");
-      // Subscribe to all events by default
-      this.socket?.emit("subscribe:all", {});
+      console.log("WebSocket connected to parking-pay backend");
     });
 
     this.socket.on("disconnect", () => {
@@ -32,18 +30,21 @@ class SocketService {
       console.error("WebSocket connection error:", error);
     });
 
-    // Forward all events to listeners
-    const events = [
-      "payment:confirmed", // Event khi payment được confirm qua webhook
-    ];
-
-    events.forEach((event) => {
-      this.socket?.on(event, (data) => {
-        const callbacks = this.listeners.get(event);
-        if (callbacks) {
-          callbacks.forEach((callback) => callback(data));
-        }
-      });
+    // Listen for payment:confirmed event and forward to listeners
+    this.socket.on("payment:confirmed", (data) => {
+      console.log("📨 Received payment:confirmed event:", data);
+      const callbacks = this.listeners.get("payment:confirmed");
+      if (callbacks) {
+        callbacks.forEach((callback) => {
+          try {
+            callback(data);
+          } catch (error) {
+            console.error("Error in payment:confirmed callback:", error);
+          }
+        });
+      } else {
+        console.warn("No listeners registered for payment:confirmed event");
+      }
     });
   }
 
@@ -75,4 +76,3 @@ class SocketService {
 
 export const socketService = new SocketService();
 export default socketService;
-

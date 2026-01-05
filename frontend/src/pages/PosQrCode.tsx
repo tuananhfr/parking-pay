@@ -51,26 +51,54 @@ function PosQrCode() {
 
   // Listen for payment confirmed event from webhook
   useEffect(() => {
-    if (!lockId || !paymentInfo) return;
+    if (!lockId || !paymentInfo) {
+      console.log("Waiting for lockId and paymentInfo...", {
+        lockId,
+        paymentInfo,
+      });
+      return;
+    }
+
+    console.log("Setting up payment:confirmed listener", {
+      lockId,
+      orderId: paymentInfo.orderId,
+    });
 
     // Connect to WebSocket
     socketService.connect();
 
     // Listen for payment confirmed event
     const handlePaymentConfirmed = (data: any) => {
+      console.log("🔔 handlePaymentConfirmed called with data:", data);
+      console.log("Current state:", {
+        lockId,
+        paymentInfoOrderId: paymentInfo.orderId,
+        dataLockId: data.lock_id,
+        dataOrderId: data.order_id,
+      });
+
       const { lock_id, order_id } = data;
 
       // Check if this payment is for the current locker and order
       if (lock_id === lockId && order_id === paymentInfo.orderId) {
-        console.log(`Payment confirmed for order ${order_id}, locker ${lock_id}`);
-        
+        console.log(
+          `✅ Payment confirmed for order ${order_id}, locker ${lock_id}`
+        );
+
         // Mark payment as confirmed
         setPaymentConfirmed(true);
-        
+
         // Automatically navigate to result page after a short delay
         setTimeout(() => {
-          navigate(`/pos/result/${lockId}?success=true&auto=true&orderId=${order_id}`);
-        }, 1000); // 1 second delay to show confirmation message
+          navigate(
+            `/pos/result/${lockId}?success=true&auto=true&orderId=${order_id}`
+          );
+        }, 1500); // 1.5 second delay to show confirmation message
+      } else {
+        console.log("❌ Payment event mismatch:", {
+          lockIdMatch: lock_id === lockId,
+          orderIdMatch: order_id === paymentInfo.orderId,
+        });
       }
     };
 
@@ -78,6 +106,7 @@ function PosQrCode() {
 
     // Cleanup on unmount
     return () => {
+      console.log("Cleaning up payment:confirmed listener");
       socketService.off("payment:confirmed", handlePaymentConfirmed);
     };
   }, [lockId, paymentInfo, navigate]);
@@ -130,7 +159,9 @@ function PosQrCode() {
       !confirm(
         `Xác nhận đã chuyển khoản ${locker.parking_fee.toLocaleString(
           "vi-VN"
-        )} đ cho locker ${lockId}?\n\nMã đơn: ${paymentInfo.orderId}\n\nLocker sẽ được mở khóa tự động.`
+        )} đ cho locker ${lockId}?\n\nMã đơn: ${
+          paymentInfo.orderId
+        }\n\nLocker sẽ được mở khóa tự động.`
       )
     ) {
       return;
@@ -234,7 +265,10 @@ function PosQrCode() {
         >
           <div className="text-center" style={{ width: "100%" }}>
             <img
-              src={paymentInfo?.qrCodeUrl || "https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg"}
+              src={
+                paymentInfo?.qrCodeUrl ||
+                "https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg"
+              }
               alt="QR Code thanh toán"
               style={{
                 maxWidth: "100%",
@@ -287,38 +321,40 @@ function PosQrCode() {
 
         {/* Footer Buttons */}
         <div className="mt-3" style={{ flexShrink: 0 }}>
-          {/* Confirm Payment Button - Hide if payment already confirmed */}
+          {/* Confirm Payment Button - Completely removed if payment already confirmed */}
           {!paymentConfirmed && (
-            <button
-              className="btn btn-success btn-lg w-100 py-3 fw-bold mb-2"
-              onClick={handleConfirmPayment}
-              disabled={processing}
-              style={{ fontSize: "1.2rem" }}
-            >
-              {processing ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2"></span>
-                  Đang xử lý...
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-check-circle me-2"></i>
-                  Đã chuyển khoản
-                </>
-              )}
-            </button>
-          )}
+            <>
+              <button
+                className="btn btn-success btn-lg w-100 py-3 fw-bold mb-2"
+                onClick={handleConfirmPayment}
+                disabled={processing}
+                style={{ fontSize: "1.2rem" }}
+              >
+                {processing ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2"></span>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-check-circle me-2"></i>
+                    Đã chuyển khoản
+                  </>
+                )}
+              </button>
 
-          {/* Back Button */}
-          <button
-            className="btn btn-outline-secondary w-100 py-2"
-            onClick={() => navigate(`/pos/payment/${lockId}`)}
-            disabled={processing}
-            style={{ fontSize: "0.9rem" }}
-          >
-            <i className="bi bi-arrow-left me-2"></i>
-            Quay lại thông tin
-          </button>
+              {/* Back Button */}
+              <button
+                className="btn btn-outline-secondary w-100 py-2"
+                onClick={() => navigate(`/pos/payment/${lockId}`)}
+                disabled={processing}
+                style={{ fontSize: "0.9rem" }}
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                Quay lại thông tin
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -326,4 +362,3 @@ function PosQrCode() {
 }
 
 export default PosQrCode;
-
