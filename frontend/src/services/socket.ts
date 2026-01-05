@@ -11,11 +11,20 @@ class SocketService {
       return;
     }
 
-    this.socket = io(config.wsUrl, {
+    // Auto-detect protocol: if wsUrl starts with https, use wss for WebSocket
+    const wsUrl = config.wsUrl.startsWith("https://")
+      ? config.wsUrl.replace("https://", "wss://")
+      : config.wsUrl.startsWith("http://")
+      ? config.wsUrl.replace("http://", "ws://")
+      : config.wsUrl;
+
+    console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+    this.socket = io(wsUrl, {
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
+      autoConnect: true,
     });
 
     this.socket.on("connect", () => {
