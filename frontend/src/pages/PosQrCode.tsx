@@ -16,10 +16,26 @@ interface LockerDetail {
   lock_free_time: number;
 }
 
+interface PaymentInfo {
+  lockId: string;
+  lockerName: string;
+  deviceId: string;
+  amount: number;
+  orderId: string;
+  description: string;
+  accountNumber: string;
+  accountName: string;
+  bankCode: string;
+  bankName: string;
+  qrCodeUrl: string;
+  createdAt: string;
+}
+
 function PosQrCode() {
   const { lockId } = useParams<{ lockId: string }>();
   const navigate = useNavigate();
   const [locker, setLocker] = useState<LockerDetail | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
@@ -27,40 +43,59 @@ function PosQrCode() {
 
   useEffect(() => {
     if (lockId) {
-      loadLockerDetails();
+      loadPaymentInfo();
     }
   }, [lockId]);
 
-  const loadLockerDetails = async () => {
+  const loadPaymentInfo = async () => {
     if (!lockId) return;
 
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/api/pos/locker/${lockId}`);
+      // Call /api/pay/:lockId to get QR code and payment info
+      const response = await fetch(`${API_URL}/api/pay/${lockId}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Không tìm thấy locker");
+        throw new Error(errorData.message || "Không thể tạo mã QR thanh toán");
       }
 
       const data = await response.json();
-      setLocker(data.data);
+
+      if (data.success) {
+        setPaymentInfo(data);
+
+        // Also set locker info for backward compatibility
+        setLocker({
+          lock_id: data.lockId,
+          name: data.lockerName,
+          device_id: data.deviceId,
+          status: "UP",
+          occupied: true,
+          parking_fee: data.amount,
+          hourly_rate: 0,
+          car_enter_time: null,
+          lock_free_time: 0,
+        });
+      } else {
+        throw new Error(data.message || "Không thể tạo mã QR");
+      }
     } catch (err: any) {
-      setError(err.message || "Lỗi tải thông tin locker");
+      setError(err.message || "Lỗi tải thông tin thanh toán");
     } finally {
       setLoading(false);
     }
   };
 
   const handleConfirmPayment = async () => {
-    if (!lockId || !locker) return;
+    if (!lockId || !locker || !paymentInfo) return;
 
     if (
       !confirm(
         `Xác nhận đã chuyển khoản ${locker.parking_fee.toLocaleString(
           "vi-VN"
-        )} đ cho locker ${lockId}?\n\nLocker sẽ được mở khóa tự động.`
+        )} đ cho locker ${lockId}?\n\nMã đơn: ${paymentInfo.orderId}\n\nLocker sẽ được mở khóa tự động.`
       )
     ) {
       return;
@@ -76,7 +111,8 @@ function PosQrCode() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          lock_id: lockId,
+          order_id: paymentInfo.orderId, // Send order_id instead of lock_id
+          lock_id: lockId, // Keep for backward compatibility
           note: "Confirmed via POS",
         }),
       });
@@ -163,7 +199,7 @@ function PosQrCode() {
         >
           <div className="text-center" style={{ width: "100%" }}>
             <img
-              src="https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg"
+              src={paymentInfo?.qrCodeUrl || "https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg"}
               alt="QR Code thanh toán"
               style={{
                 maxWidth: "100%",
@@ -176,6 +212,19 @@ function PosQrCode() {
             <div className="mt-3 text-muted" style={{ fontSize: "0.85rem" }}>
               Quét mã QR để thanh toán
             </div>
+            {paymentInfo && (
+              <div className="mt-2">
+                <small className="text-muted d-block">
+                  Nội dung: <strong>{paymentInfo.description}</strong>
+                </small>
+                <small className="text-muted d-block">
+                  {paymentInfo.bankName} - {paymentInfo.accountNumber}
+                </small>
+                <small className="text-muted d-block">
+                  {paymentInfo.accountName}
+                </small>
+              </div>
+            )}
           </div>
         </div>
 
