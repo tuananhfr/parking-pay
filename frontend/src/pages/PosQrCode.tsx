@@ -38,7 +38,6 @@ function PosQrCode() {
   const [locker, setLocker] = useState<LockerDetail | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const [paymentConfirmed, setPaymentConfirmed] = useState(false); // Track if payment was confirmed via webhook
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -149,50 +148,6 @@ function PosQrCode() {
       setError(err.message || "Lỗi tải thông tin thanh toán");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleConfirmPayment = async () => {
-    if (!lockId || !locker || !paymentInfo) return;
-
-    if (
-      !confirm(
-        `Xác nhận đã chuyển khoản ${locker.parking_fee.toLocaleString(
-          "vi-VN"
-        )} đ cho locker ${lockId}?\n\nMã đơn: ${
-          paymentInfo.orderId
-        }\n\nLocker sẽ được mở khóa tự động.`
-      )
-    ) {
-      return;
-    }
-
-    setProcessing(true);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/api/pos/confirm-payment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          order_id: paymentInfo.orderId, // Send order_id instead of lock_id
-          lock_id: lockId, // Keep for backward compatibility
-          note: "Confirmed via POS",
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Lỗi xác nhận thanh toán");
-      }
-
-      // Navigate to result page
-      navigate(`/pos/result/${lockId}?success=true`);
-    } catch (err: any) {
-      setError(err.message || "Lỗi xác nhận thanh toán");
-      setProcessing(false);
     }
   };
 
@@ -320,42 +275,19 @@ function PosQrCode() {
         )}
 
         {/* Footer Buttons */}
-        <div className="mt-3" style={{ flexShrink: 0 }}>
-          {/* Confirm Payment Button - Completely removed if payment already confirmed */}
-          {!paymentConfirmed && (
-            <>
-              <button
-                className="btn btn-success btn-lg w-100 py-3 fw-bold mb-2"
-                onClick={handleConfirmPayment}
-                disabled={processing}
-                style={{ fontSize: "1.2rem" }}
-              >
-                {processing ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2"></span>
-                    Đang xử lý...
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-check-circle me-2"></i>
-                    Đã chuyển khoản
-                  </>
-                )}
-              </button>
-
-              {/* Back Button */}
-              <button
-                className="btn btn-outline-secondary w-100 py-2"
-                onClick={() => navigate(`/pos/payment/${lockId}`)}
-                disabled={processing}
-                style={{ fontSize: "0.9rem" }}
-              >
-                <i className="bi bi-arrow-left me-2"></i>
-                Quay lại thông tin
-              </button>
-            </>
-          )}
-        </div>
+        {!paymentConfirmed && (
+          <div className="mt-3" style={{ flexShrink: 0 }}>
+            {/* Back Button */}
+            <button
+              className="btn btn-outline-secondary w-100 py-2"
+              onClick={() => navigate(`/pos/payment/${lockId}`)}
+              style={{ fontSize: "0.9rem" }}
+            >
+              <i className="bi bi-arrow-left me-2"></i>
+              Quay lại thông tin
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
